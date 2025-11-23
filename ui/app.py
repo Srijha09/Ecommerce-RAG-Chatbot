@@ -49,9 +49,11 @@ st.write(
 chat_col, side_col = st.columns([3, 2])
 
 if "messages" not in st.session_state:
-    st.session_state.messages = []       # [{"role": "user"/"assistant", "content": str}]
+    st.session_state.messages = []        # [{"role": "user"/"assistant", "content": str}]
 if "last_sources" not in st.session_state:
-    st.session_state.last_sources = []   # cache last response sources
+    st.session_state.last_sources = []    # cache last response sources
+if "last_judge" not in st.session_state:
+    st.session_state.last_judge = None    # {"label": str, "cycles": [...]}
 
 # ---------------------------
 # Chat history display
@@ -88,19 +90,64 @@ with chat_col:
 
         try:
             resp = requests.post(API_URL, json=payload, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            answer = data["answer"]
-            sources = data.get("sources", [])
+
+            if not resp.ok:
+                # surface backend error details
+                try:
+                    detail = resp.json()
+                except Exception:
+                    detail = resp.text
+                answer = (
+                    f"⚠️ Backend returned {resp.status_code}\n\n"
+                    f"Details: {detail}"
+                )
+                sources = []
+                judge_label = None
+                judge_cycles = []
+            else:
+                data = resp.json()
+                answer = data.get("answer", "")
+                sources = data.get("sources", [])
+                judge_label = data.get("judge_label")
+                judge_cycles = data.get("judge_cycles", [])
+
         except Exception as e:
             answer = f"⚠️ Error calling backend: {e}"
             sources = []
+            judge_label = None
+            judge_cycles = []
 
+        # store latest results
         st.session_state.messages.append({"role": "assistant", "content": answer})
         st.session_state.last_sources = sources
+        st.session_state.last_judge = {
+            "label": judge_label,
+            "cycles": judge_cycles,
+        }
 
+        # render assistant answer
         with st.chat_message("assistant"):
             st.write(answer)
+
+            # 🔍 LLM-as-Judge expander directly under the answer
+            if judge_label is not None:
+                with st.expander("LLM Evaluation"):
+                    st.write(f"**Judge Label:** `{judge_label}`")
+                    if judge_cycles:
+                        st.write("**Evaluation Cycles:**")
+                        for c in judge_cycles:
+                            crit = c.get("critique") or "(no critique – judged correct)"
+                            st.markdown(
+                                f"- Cycle {c.get('cycle', '?')}: **{crit}**"
+                            )
+                    else:
+                        st.caption("No detailed cycles available.")
+            if sources:
+                st.markdown("**References:**")
+                for s in sources:
+                    page = s.get("metadata", {}).get("page", None)
+                    file = s.get("metadata", {}).get("source_file", None)
+                    st.markdown(f"- {file}, page {page}")
 
 # ---------------------------
 # Right column – source chunks

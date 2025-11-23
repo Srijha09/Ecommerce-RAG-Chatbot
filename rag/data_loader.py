@@ -15,9 +15,15 @@ def load_policy_pdfs() -> List[Document]:
 
     for pdf_path in pdf_paths:
         loader = PyPDFLoader(str(pdf_path))
-        loaded = loader.load()
-        print(f"[data_loader] Loaded {len(loaded)} pages from {pdf_path.name}")
-        docs.extend(loaded)
+        pages = loader.load()
+        print(f"[data_loader] Loaded {len(pages)} pages from {pdf_path.name}")
+        for p in pages:
+            # FIX: ensure page number is always included
+            if "page" not in p.metadata:
+                p.metadata["page"] = p.metadata.get("page_number", None)
+
+            p.metadata["source_file"] = pdf_path.name
+            docs.append(p)
 
     print(f"[data_loader] Total pages loaded: {len(docs)}")
     return docs

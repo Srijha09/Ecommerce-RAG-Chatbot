@@ -1,12 +1,11 @@
-# app/main.py
 import time
-
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-
 from .schemas import ChatRequest, ChatResponse, SourceSnippet
 from rag.pipeline import RAGPipeline
+from rag.evaluator import InlineLLMJudge
+
 from monitoring.metrics import (
     RAG_REQUESTS,
     RAG_ERRORS,
@@ -15,46 +14,43 @@ from monitoring.metrics import (
 )
 
 app = FastAPI(title="Everstorm RAG Chatbot")
-
-# Initialize RAG pipeline once (load index, build retriever, etc.)
 rag_pipeline = RAGPipeline.from_index()
+judge = InlineLLMJudge(max_cycles=3)
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 def chat(req: ChatRequest):
     endpoint = "/chat"
     RAG_REQUESTS.labels(endpoint=endpoint).inc()
     start = time.perf_counter()
 
     try:
-        answer, meta = rag_pipeline.ask(
-            question=req.question,
-            chat_history=req.history or [],
-            top_k=req.top_k,
-            temperature=req.temperature,
-        )
+        result = judge.evaluate_answer(req.question)
+        answer = result["answer"]
+
+        meta = {
+            "label": result["label"],
+            "cycles": result["cycles"],
+            "sources": result["sources"]
+        }
+
     except Exception as e:
         RAG_ERRORS.labels(endpoint=endpoint).inc()
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
     duration = time.perf_counter() - start
     RAG_LATENCY.labels(endpoint=endpoint).observe(duration)
+    RAG_RETRIEVED_CHUNKS.observe(len(meta["sources"]))
 
-    num_sources = int(meta.get("num_sources", 0))
-    RAG_RETRIEVED_CHUNKS.observe(num_sources)
-
-    sources = [SourceSnippet(**s) for s in meta.get("sources", [])]
-
-    return ChatResponse(
-        answer=answer,
-        num_sources=num_sources,
-        sources=sources,
-    )
+    return {
+        "answer": answer,
+        "judge_label": meta["label"],
+        "judge_cycles": meta["cycles"],
+        "sources": meta["sources"]
+    }
 
 @app.get("/metrics")
 def metrics():
