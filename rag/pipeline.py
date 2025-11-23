@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from langchain_core.documents import Document
-from .vectorstore import load_vectorstore, get_retriever
+from .vectorstore import load_vectorstore
 from .llm import create_llm
 from .config import settings
 
@@ -16,18 +16,24 @@ Rules:
 """
 
 class RAGPipeline:
-    def __init__(self, llm, retriever):
+    def __init__(self, llm, vectorstore):
+        # Store both the LLM and the FAISS vectorstore on the instance
         self.llm = llm
-        self.retriever = retriever
+        self.vectorstore = vectorstore
 
     @classmethod
     def from_index(cls) -> "RAGPipeline":
+        """
+        Load the FAISS index from disk, create an LLM, and build a pipeline instance.
+        """
         vs = load_vectorstore()
-        retriever = get_retriever(vs)
         llm = create_llm()
-        return cls(llm=llm, retriever=retriever)
+        return cls(llm=llm, vectorstore=vs)
 
     def _build_prompt(self, question: str, docs: List[Document]) -> str:
+        """
+        Build a prompt using the system instructions + retrieved context + user question.
+        """
         context = "\n\n".join(d.page_content for d in docs)
         prompt = f"""{SYSTEM_TEMPLATE}
 
@@ -44,24 +50,34 @@ User question: {question}
         question: str,
         chat_history: List[tuple[str, str]] | None = None,
         top_k: int | None = None,
-        temperature: float | None = None,
+        temperature: float | None = None,  # kept for future use
     ) -> tuple[str, Dict[str, Any]]:
+        """
+        Main RAG entrypoint:
+        - retrieves relevant documents from the vectorstore
+        - builds a prompt
+        - calls the LLM
+        - returns answer + metadata (sources)
+        """
         chat_history = chat_history or []
         k = top_k or settings.top_k
 
-        # override k on retriever
-        self.retriever.search_kwargs["k"] = k
-        docs: List[Document] = self.retriever.get_relevant_documents(question)
+        # 1) Retrieve relevant documents directly from FAISS
+        docs: List[Document] = self.vectorstore.similarity_search(question, k=k)
 
+        # 2) Build prompt
         prompt = self._build_prompt(question, docs)
 
-        # per-call temperature override if provided
-        llm_kwargs: Dict[str, Any] = {}
-        if temperature is not None:
-            llm_kwargs["temperature"] = temperature
+        # 3) Call LLM (no per-call kwargs for now to keep Ollama happy)
+        raw_answer = self.llm.invoke(prompt)
 
-        answer: str = self.llm.invoke(prompt, **llm_kwargs)
+        # Normalize result to string (some LLMs return Message objects)
+        if hasattr(raw_answer, "content"):
+            answer = raw_answer.content
+        else:
+            answer = str(raw_answer)
 
+        # 4) Prepare metadata
         meta: Dict[str, Any] = {
             "num_sources": len(docs),
             "sources": [

@@ -38,6 +38,8 @@ def chat(req: ChatRequest):
         )
     except Exception as e:
         RAG_ERRORS.labels(endpoint=endpoint).inc()
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
     duration = time.perf_counter() - start

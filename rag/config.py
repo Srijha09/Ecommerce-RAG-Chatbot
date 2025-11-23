@@ -12,7 +12,7 @@ class Settings:
         self.embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
 
         # LLM (if you're using Ollama or similar)
-        self.ollama_model_name: str = "gemma3:1b"
+        self.ollama_model_name: str = "gemma2:2b"
         self.llm_temperature: float = 0.1
 
         # Retrieval + chunking

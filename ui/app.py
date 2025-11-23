@@ -39,7 +39,7 @@ with st.sidebar:
 # ---------------------------
 # Main layout
 # ---------------------------
-st.title("🧭 Everstorm Outfitters – RAG Support Chatbot")
+st.title("Customer Support RAG Chatbot")
 st.write(
     "Ask any question based on the Everstorm policies. "
     "Responses are grounded in retrieved documentation."
