@@ -89,7 +89,7 @@ with chat_col:
         }
 
         try:
-            resp = requests.post(API_URL, json=payload, timeout=60)
+            resp = requests.post(API_URL, json=payload, timeout=180)
 
             if not resp.ok:
                 # surface backend error details

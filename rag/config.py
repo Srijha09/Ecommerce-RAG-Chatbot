@@ -5,7 +5,6 @@ class Settings:
         # Where your PDFs live
         self.data_dir: Path = Path("data")
         print(f"Data directory set to: {self.data_dir}")
-        # Where to save / load FAISS index
         self.index_path: Path = Path("data/faiss_index")
 
         # Embeddings
@@ -14,6 +13,9 @@ class Settings:
         # LLM (if you're using Ollama or similar)
         self.ollama_model_name: str = "gemma2:2b"
         self.llm_temperature: float = 0.1
+
+        self.judge_model_name: str = "tinyllama:latest"
+        self.judge_temperature: float = 0.01
 
         # Retrieval + chunking
         self.top_k: int = 5

@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from langchain_core.documents import Document
 from .vectorstore import load_vectorstore
-from .llm import create_llm
+from .llm import create_gen_llm
 from .config import settings
 
 SYSTEM_TEMPLATE = """
@@ -27,7 +27,7 @@ class RAGPipeline:
         Load the FAISS index from disk, create an LLM, and build a pipeline instance.
         """
         vs = load_vectorstore()
-        llm = create_llm()
+        llm = create_gen_llm()
         return cls(llm=llm, vectorstore=vs)
 
     def _build_prompt(self, question: str, docs: List[Document]) -> str:

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 from pprint import pprint
-from rag.llm import create_llm
+from rag.llm import create_judge_llm
 from rag.pipeline import RAGPipeline
 
 
@@ -17,17 +17,10 @@ class InlineLLMJudge:
 
     def __init__(
         self,
-        judge_model: str = None,
         max_cycles: int = 3,
-        temperature: float = 0.01,
-        max_tokens: int = 50,
     ):
         self.max_cycles = max_cycles
-        self.judge_llm = create_llm(
-            model_name=judge_model,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
+        self.judge_llm = create_judge_llm()
         self.rag = RAGPipeline.from_index()
 
     def _build_critic_prompt(self, base_context: str, answer: str) -> str:
