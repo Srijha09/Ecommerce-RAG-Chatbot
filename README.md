@@ -60,45 +60,5 @@ Target use case: **Customer support** for common questions like returns, refunds
 │
 ├── everstorm_eval_dataset.jsonl  # Optional: eval dataset for offline testing
 
-
-
-flowchart LR
-    subgraph UI["Streamlit UI (ui/app.py)"]
-        U[User] -->|Question| ST[Chat Input]
-        ST -->|POST /chat| API
-    end
-
-    subgraph Backend["FastAPI Backend (app/main.py)"]
-        API[POST /chat] --> PIPE[RAGPipeline.ask()]
-        API --> METRICS[Prometheus Metrics]
-    end
-
-    subgraph RAG["RAG Core (rag/pipeline.py)"]
-        PIPE --> RETRIEVE[FAISS Vector Store]
-        RETRIEVE --> DOCS[Top-k Chunks]
-        DOCS --> PROMPT[Prompt Builder]
-        PROMPT --> GEN_LLM[Generator LLM\n(Ollama)]
-        GEN_LLM --> ANSWER[Answer]
-    end
-
-    subgraph Store["Index & Data"]
-        PDF[Everstorm PDFs] --> LOADER[PDF Loader\n+ Chunker]
-        LOADER --> INDEX[FAISS Index]
-        INDEX -.-> RETRIEVE
-    end
-
-    subgraph Judge["LLM-as-Judge (rag/evaluator.py)"]
-        ANSWER --> JPROMPT[Judge Prompt\n(CONTEXT + ANSWER)]
-        DOCS --> JPROMPT
-        JPROMPT --> JLLM[Judge LLM\n(Ollama, smaller)]
-        JLLM --> JL[Label:\nCORRECT / HALLUCINATION / INCOMPLETE]
-    end
-
-    ANSWER --> API
-    JL --> API
-
-    API -->|JSON: answer + sources + judge_label| UI
-    UI -->|Show answer, context, LLM eval| U
-
 ├── requirements.txt
 └── README.md
