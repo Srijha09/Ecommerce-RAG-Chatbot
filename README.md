@@ -39,12 +39,11 @@ The system uses:
 │   └── build_index.py       # Offline script to build the FAISS index from PDFs
 │
 ├── data/
-```
-
 │   ├── *.pdf                # Everstorm policy PDFs (input)
 │   └── faiss_index/         # Saved FAISS index (output)
 │
 ├── everstorm_eval_dataset.jsonl  # Optional: eval dataset for offline testing
+```
 
 ├── requirements.txt
 └── README.md
