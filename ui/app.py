@@ -89,7 +89,7 @@ with chat_col:
         }
 
         try:
-            resp = requests.post(API_URL, json=payload, timeout=180)
+            resp = requests.post(API_URL, json=payload, timeout=300)
 
             if not resp.ok:
                 # surface backend error details
@@ -143,11 +143,12 @@ with chat_col:
                     else:
                         st.caption("No detailed cycles available.")
             if sources:
-                st.markdown("**References:**")
+                st.markdown("### 📘 References:")
                 for s in sources:
-                    page = s.get("metadata", {}).get("page", None)
-                    file = s.get("metadata", {}).get("source_file", None)
-                    st.markdown(f"- {file}, page {page}")
+                    meta = s.get("metadata", {})
+                    file = meta.get("source", "unknown")
+                    page = meta.get("page_number", "?")
+                    st.markdown(f"- `{file}`, page **{page}**")
 
 # ---------------------------
 # Right column – source chunks
