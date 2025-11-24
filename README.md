@@ -43,7 +43,6 @@ The system uses:
 │   └── faiss_index/         # Saved FAISS index (output)
 │
 ├── everstorm_eval_dataset.jsonl  # Optional: eval dataset for offline testing
-```
-
 ├── requirements.txt
 └── README.md
+```
