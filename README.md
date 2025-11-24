@@ -46,3 +46,54 @@ The system uses:
 ├── requirements.txt
 └── README.md
 ```
+
+```mermaid
+flowchart LR
+
+    %% UI Layer
+    U[User]
+    UI[Streamlit UI]
+    U --> UI
+
+    %% Backend
+    API[FastAPI Chat Endpoint]
+    UI -->|POST chat| API
+
+    %% RAG Pipeline
+    RAG[RAG Pipeline]
+    RET[Retriever]
+    CHUNKS[Top K Chunks]
+    PROMPT[Prompt Builder]
+    GEN[Generator LLM]
+    ANSWER[Answer]
+
+    API --> RAG
+    RAG --> RET
+    RET --> CHUNKS
+    CHUNKS --> PROMPT
+    PROMPT --> GEN
+    GEN --> ANSWER
+
+    %% Index and Data
+    PDF[Everstorm PDFs]
+    LOADER[PDF Loader and Chunker]
+    INDEX[FAISS Index]
+
+    PDF --> LOADER --> INDEX
+    INDEX --> RET
+
+    %% Judge
+    JUDGE[Judge LLM]
+    JPROMPT[Judge Prompt]
+    LABEL[Judge Label]
+
+    ANSWER --> JPROMPT
+    CHUNKS --> JPROMPT
+    JPROMPT --> JUDGE
+    JUDGE --> LABEL
+
+    %% Return to UI
+    ANSWER --> UI
+    LABEL --> UI
+
+```
