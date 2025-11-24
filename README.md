@@ -10,24 +10,8 @@ The system uses:
 - **FastAPI** backend + **Streamlit** UI  
 - **Prometheus-compatible metrics** for basic monitoring  
 
----
 
-## 🎯 Objective
-
-Build an end-to-end RAG system that:
-
-1. Ingests Everstorm policy documents (PDFs)  
-2. Chunks and embeds them into a FAISS vector index  
-3. Retrieves relevant chunks for each user question  
-4. Generates grounded answers with an LLM  
-5. Uses **LLM-as-judge** to sanity-check answers and surface evaluation in the UI  
-6. Exposes basic metrics for observability  
-
-Target use case: **Customer support** for common questions like returns, refunds, shipping, product care, etc.
-
----
-
-## 🧱 Project Structure
+## Project Structure
 
 ```text
 .
@@ -55,6 +39,8 @@ Target use case: **Customer support** for common questions like returns, refunds
 │   └── build_index.py       # Offline script to build the FAISS index from PDFs
 │
 ├── data/
+```
+
 │   ├── *.pdf                # Everstorm policy PDFs (input)
 │   └── faiss_index/         # Saved FAISS index (output)
 │
