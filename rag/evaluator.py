@@ -17,7 +17,7 @@ class InlineLLMJudge:
 
     def __init__(
         self,
-        max_cycles: int = 3,
+        max_cycles: int = 1,
     ):
         self.max_cycles = max_cycles
         self.judge_llm = create_judge_llm()
