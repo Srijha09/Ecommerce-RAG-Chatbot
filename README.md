@@ -149,31 +149,19 @@ LLM-as-Judge is the primary metric for correctness because RAG answers are often
 
 The offline evaluation script (scripts/run_offline_eval.py) runs the following steps for each question:
 
-Retrieve documents with RAG
-
-Generate answer with the main LLM
-
-Run LLM-as-Judge
-
-Up to 3 critique cycles
-
-Produces a label: CORRECT, HALLUCINATION, INCOMPLETE, or MAX_CYCLES
-
-Compute BLEU / ROUGE-L / METEOR
-
-Log per-question results
-
-Aggregate final metrics:
-
-% CORRECT
-
-% HALLUCINATION
-
-% INCOMPLETE
-
-Average BLEU / ROUGE / METEOR
-
-Failure / timeout rat
+- Retrieve documents with RAG
+- Generate answer with the main LLM
+- Run LLM-as-Judge
+- Up to 3 critique cycles
+- Produces a label: CORRECT, HALLUCINATION, INCOMPLETE, or MAX_CYCLES
+- Compute BLEU / ROUGE-L / METEOR
+- Log per-question results
+- Aggregate final metrics:
+-- % CORRECT
+-- % HALLUCINATION
+-- % INCOMPLETE
+- Average BLEU / ROUGE / METEOR
+- Failure / timeout rat
 
 
 
