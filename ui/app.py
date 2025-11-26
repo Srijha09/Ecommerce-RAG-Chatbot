@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any, Dict, List
-
+import altair as alt
 import requests
 import streamlit as st
 import pandas as pd
@@ -276,6 +276,28 @@ elif mode == "Offline Evaluation":
             f"{(count / total) * 100:.1f}%",
         )
 
+    # 🔵 NEW: Judge label bar chart
+    if label_counts:
+        chart_df = (
+            pd.DataFrame(
+                [{"judge_label": lbl, "count": cnt} for lbl, cnt in label_counts.items()]
+            )
+            .sort_values("judge_label")
+        )
+        st.markdown("#### Judge Label Distribution (Chart)")
+        label_chart = (
+            alt.Chart(chart_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("judge_label:N", title="Label"),
+                y=alt.Y("count:Q", title="Count"),
+                color="judge_label:N",
+                tooltip=["judge_label", "count"],
+            )
+            .properties(height=300, width="container")
+        )
+        st.altair_chart(label_chart, use_container_width=True)
+
     # Sidebar filters for eval mode
     st.sidebar.header("🔎 Eval Filters")
 
@@ -346,6 +368,29 @@ elif mode == "Offline Evaluation":
         height=300,
     )
 
+    # 🔵 NEW: Metric trend chart over filtered examples
+    if not filtered_df.empty:
+        st.markdown("#### Metric Trends (Filtered Examples)")
+        # reshape for altair
+        metrics_long = filtered_df.melt(
+            id_vars=["id"],
+            value_vars=["bleu", "meteor", "rouge_l"],
+            var_name="metric",
+            value_name="value",
+        )
+        metric_chart = (
+            alt.Chart(metrics_long)
+            .mark_line(point=True)
+            .encode(
+                x=alt.X("id:N", title="Example ID", sort=None),
+                y=alt.Y("value:Q", title="Score", scale=alt.Scale(domain=[0, 1])),
+                color=alt.Color("metric:N", title="Metric"),
+                tooltip=["id", "metric", "value"],
+            )
+            .properties(height=300, width="container")
+        )
+        st.altair_chart(metric_chart, use_container_width=True)
+
     st.markdown("### Per-Query Details")
 
     if filtered_df.empty:
@@ -408,4 +453,3 @@ elif mode == "Offline Evaluation":
                         crit = c.get("critique") or "(no critique – judged correct)"
                         st.markdown(f"**Cycle {cycle_no}**")
                         st.write(crit)
-
