@@ -111,7 +111,7 @@ Each question includes:
 - evaluation metrics (BLEU, METEOR, ROUGE-L)  
 - LLM-as-judge classification  
 
-### 🔍 Evaluation Methodology
+### Evaluation Methodology
 
 The evaluation pipeline runs:
 
@@ -128,7 +128,7 @@ The evaluation pipeline runs:
 
 ---
 
-### 📊 Results Summary
+### Results Summary
 
 | Metric | Value |
 |--------|--------|
@@ -168,7 +168,7 @@ The offline evaluation script (scripts/run_offline_eval.py) runs the following s
 
 
 
-## ⚙️ Prerequisites
+## Prerequisites
 - **Python 3.10+**  
   (Project tested on Python **3.11** and **3.13**)
 
@@ -179,7 +179,7 @@ The offline evaluation script (scripts/run_offline_eval.py) runs the following s
   ```bash
   ollama pull llama3.1          # generator LLM
   ollama pull qwen2.5:0.5b      # judge LLM (fast & small)
-## 🚀 Setup & Run
+## Setup & Run
 
 ### **1. Clone the repo & create a virtual environment**
 
